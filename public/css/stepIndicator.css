@@ -1,0 +1,127 @@
+* {
+            box-sizing: border-box;
+        }
+        body{
+            font-size: 1em;
+            font-family: 'Open Sans', sans-serif;
+        }
+        h1{
+            text-align: center;
+            font-size: 1.5em;
+        }
+        #bookForm {
+            max-width: 1000px;
+            background-color: #ffffff;
+            margin: 40px auto;
+            padding: 40px;
+            box-shadow: 0px 6px 18px rgb(0 0 0 / 9%);
+            border-radius: 12px;
+        }
+        #bookForm .form-header {
+            display: flex;
+            gap: 5px;
+            text-align: center;
+            font-size: .9em;
+        }
+        #bookForm .form-header .stepIndicator {
+            position: relative;
+            flex: 1;
+            padding-bottom: 30px;
+        }
+        #bookForm .form-header .stepIndicator.active {
+            font-weight: 600;
+        }
+        #bookForm .form-header .stepIndicator.finish {
+            font-weight: 600;
+            color: #009688;
+        }
+        #bookForm .form-header .stepIndicator::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            z-index: 9;
+            width: 15px;
+            height: 15px;
+            background-color: #d5efed;
+            border-radius: 50%;
+            border: 3px solid #ecf5f4;
+        }
+        #bookForm .form-header .stepIndicator.active::before {
+            background-color: #a7ede8;
+            border: 3px solid #d5f9f6;
+        }
+        #bookForm .form-header .stepIndicator.finish::before {
+            background-color: #009688;
+            border: 3px solid #b7e1dd;
+        }
+        #bookForm .form-header .stepIndicator::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 9px;
+            width: 100%;
+            height: 3px;
+            background-color: #f3f3f3;
+        }
+        #bookForm .form-header .stepIndicator.active::after {
+            background-color: #a7ede8;
+        }
+        #bookForm .form-header .stepIndicator.finish::after {
+            background-color: #009688;
+        }
+        #bookForm .form-header .stepIndicator:last-child:after {
+            display: none;
+        }
+
+        #bookForm p{
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .mb-15{
+            margin-bottom: 15px;
+        }
+        
+        #bookForm input {
+            /*padding: 15px 20px;*/
+            width: 100%;
+            font-size: 1em;
+            border: 1px solid #e3e3e3;
+            border-radius: 5px;
+        }
+        #bookForm input:focus {
+            border: 1px solid #009688;
+            outline: 0;
+        }
+        #bookForm input.invalid {
+            border: 1px solid #ffaba5;
+        }
+        #bookForm .step {
+          display: none;
+        }
+        #bookForm .form-footer{
+            overflow:auto;
+            display: flex;
+            gap: 20px;
+        }
+        #bookForm .form-footer button{
+            background-color: #009688;
+            border: 1px solid #009688 !important;
+            color: #ffffff;
+            border: none;
+            padding: 13px 30px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 5px;
+            flex: 1;
+            margin-top: 5px;
+        }
+        #bookForm .form-footer button:hover {
+          opacity: 0.8;
+        }
+        
+        #bookForm .form-footer #prevBtn {
+            background-color: #fff;
+            color: #009688;
+        }
