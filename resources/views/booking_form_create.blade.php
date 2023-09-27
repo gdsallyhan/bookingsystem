@@ -1,6 +1,12 @@
 @extends('layouts.master')
 @section('content')
 
+<!-- @if(session()->has('message'))
+    <div class="alert alert-success">
+        {{ session('message') }}
+    </div>
+@endif -->
+
 <div x-data="{show: true}" x-init="setTimeout(() => show = false, 5000)" x-show="show">
 @if(!empty($successMsg))
  <div class="alert alert-success"> {{ $successMsg }}</div>

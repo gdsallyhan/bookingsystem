@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Exports;
-
+use Illuminate\Support\Collection;
 use App\Booking;
+use App\ModelVehicle;
+use App\Vehicle;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
@@ -13,48 +15,65 @@ class BookingExport implements FromCollection, WithHeadings
     */
     public function collection()
     {
-        // return Booking::all();
         // Retrieve and return the booking data as a collection
-        return Booking::select(
-            'customers.name as customer_name',
+        $booking = Booking::select(
+            'bookings.created_at',
             'bookings.booking_no',
+            'customers.name as customer name',
             'customers.phone',
             'bookings.booking_date',
             'bookings.booking_status',
             'bookings.amount',
             'bookings.notes',
-            'shipments.name as vessel_name',
-            'shipments.number as vessel_number',
-            'shipments.date as shipping_date',
+            'shipments.name as vessel name',
+            'shipments.number as vessel number',
+            'shipments.date as shipping date',
             'shipments.port_from as pol',
             'shipments.port_to as pod',
-            // 'locations.carry_by as carry_by', // Assuming 'carry_by' is in the 'locations' table
-            'model_vehicles.model as Model',
-            // 'vehicles.type as Type',
-            // 'vehicles.model as Model',
-            'vehicles.plate_no as Plate No',
-            'vehicles.engine as Engine',
-            'vehicles.chasis as Chasis',
-            'vehicles.color as Color',
-            'vehicles.year as Year Manufactured',
-            'vehicles.personal_effect as Personal Effect',
-            'bookings.created_at'
         )
             ->join('customers', 'customers.id', '=', 'bookings.customer_id')
             ->join('shipments', 'shipments.id', '=', 'bookings.shipment_id')
-            ->join('locations', 'locations.id', '=', 'bookings.id') // Updated join condition
-            ->join('vehicles', 'vehicles.booking_id', '=', 'bookings.id')   // Adjusted join condition
-            ->join('model_vehicles', 'model_vehicles.id', '=', 'bookings.id')
+            ->join('locations', 'locations.id', '=', 'bookings.id')
             ->whereNull('bookings.deleted_at')
-            ->get();
+            ->where('bookings.deleted_at')
+            ->get()->toArray();
+
+        $loc_pick = Booking::select('locations.name as collection')
+            ->join('locations', 'locations.id', '=', 'bookings.location_id_pickup')
+            ->get()->toArray();
+
+        $loc_delivery = Booking::select('locations.name as delivery')
+            ->join('locations', 'locations.id', '=', 'bookings.location_id_delivery')
+            ->get()->toArray();
+
+        $vehicle = Vehicle::select('model_vehicles.make',
+            'model_vehicles.model',
+            'model_vehicles.category',
+            'model_vehicles.year as year manufactured',
+            'vehicles.plate_no as plate no',
+            'vehicles.engine',
+            'vehicles.chasis',
+            'vehicles.color',
+            'vehicles.personal_effect')
+
+            ->join('model_vehicles', 'model_vehicles.id', '=', 'vehicles.model_id')
+            ->get()->toArray();
+
+            $merge = array_merge($booking,$loc_pick,$loc_delivery,$vehicle);
+            
+            $flattenedArray = collect($merge)->flatten()->all();
+            
+        return collect([$flattenedArray]);
+    
     }
 
     public function headings(): array
     {
         // Define the headings for the exported booking data as an array of strings
         return [
-            'Customer Name',
+            'Created At',
             'Booking No.',
+            'Customer Name',
             'Contact No.',
             'Booking Date',
             'Booking Status',
@@ -67,14 +86,16 @@ class BookingExport implements FromCollection, WithHeadings
             'Pod',
             'Collection',
             'Delivery',
+            'Brand',
             'Model',
+            'Body Type',
+            'Year',
             'Regist No',
             'Engine',
             'Chassis',
             'Color',
-            'Year',
             'Personal Effect',
-            'Created At',
+            
         ];
     }
 }

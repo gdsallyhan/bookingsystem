@@ -12,25 +12,24 @@ use Toyyibpay;
 
 class PaymentController extends Controller
 {
-    
+    /* Function to display list of bank
+     */
     public function getBanksFPX()
     {
         $data = Toyyibpay::getBanksFPX();
 
-        // dd($data);
-
     }
 
+    /* Function to create payment bill and bill code
+     */
     public function createPaymentBill(Request $request, Customer $customer)
     {
    
         $code = config('toyyibpay.code');
 
-        // dd($customer,$code);
+        $booking = Booking::where('customer_id', $customer->id)->latest('created_at')->first();
 
-        $booking = Booking::where('customer_id', $customer->id)->first();
-
-        // $amount = $booking->amount * 100;
+        $amount = $booking->amount * 100;
 
         $bill_object = [
                 'billName'=> 'Ventura Trans and Services',
@@ -43,9 +42,9 @@ class PaymentController extends Controller
                 'billCallbackUrl'=> route('payment.callback'),
 
                 'billExternalReferenceNo' => $booking->booking_no,
-                'billTo'=> $customer->name,
-                'billEmail'=> $customer->email,
-                'billPhone'=> $customer->phone,
+                'billTo'=> $booking->customer()->name,
+                'billEmail'=> $booking->customer()->email,
+                'billPhone'=> $booking->customer()->phone,
                 'billPaymentChannel' => 0,
 
                 // 'billSplitPayment'=> $bill_object->billSplitPayment ?? 0,
@@ -60,13 +59,6 @@ class PaymentController extends Controller
 
         $bill_code = $data[0]->BillCode;
 
-        // $payment_link = "https://dev.toyyibpay.com/" . $bill_code;
-        // Save the payment link to the database
-        //  $payment = new Payment();
-        //  $payment->customer_id = $customer->id;
-        //  $booking->payment_link = $payment_link;
-        //  $booking->save();
-
         $booking->payment_link = $bill_code;
         $booking->save();
 
@@ -75,17 +67,18 @@ class PaymentController extends Controller
  
     }
 
-
+    /* Function to route to toyyip gateway interface
+     */
     public function billPaymentLink($bill_code)
     {
-
         $data = Toyyibpay::billPaymentLink($bill_code);
 
         return redirect($data);
         // dd($data);
     }
 
-
+    /* Function to update status payment
+     */
     public function paymentStatus()
     {
         $data = request()->all(['status_id', 'billcode', 'order_id', 'transaction_id']);
@@ -103,15 +96,11 @@ class PaymentController extends Controller
         } elseif ($data['status_id'] == 3) {
             $booking->booking_status = 'PENDING';
         }
-
-        // dd($data);
     
-        // Store payment in the database
+        //Store payment in the database
         if ($pay = Payment::where('booking_id', $booking->id )->exists()){
             
             Payment::findOrFail($booking->id)->update(['status' => $data['status_id']]);
-        
-            // dd($p);
 
         }else{
             Payment::create([
@@ -135,6 +124,8 @@ class PaymentController extends Controller
         return $mergeArray;
     }
 
+    /* Function to callback payment 
+    */
     public function callback(Request $request)
     {
         $data = request()->all(['refno','status','reason','billcode','order_id','amount']);
@@ -145,8 +136,8 @@ class PaymentController extends Controller
     /* CRUD Payment */
      /*******************************************************************************************/
 
-    /* Payment Index 
-    */
+    /* Function to search and display list of payment
+     */
     public function index(Request $request)
     {
         // $search = $request->input('search');
@@ -202,8 +193,7 @@ class PaymentController extends Controller
                                   
             $payments = $paymentsQuery->paginate(15);
             $payments->appends($request->all());
-
-                                
+                   
         }
         
         else{
@@ -213,13 +203,12 @@ class PaymentController extends Controller
                                 ->orderBy('booking_no', 'DESC')
                                 ->paginate(10);                        
         }
-
-                
+       
         return view('payment_index',compact('payments'));
     }
 
-    /* Payment display receipt 
-    */
+    /* Function to display receipt after payment success
+     */
     public function show(Payment $payment)
     {
         return view('payment_view', compact('payment'));

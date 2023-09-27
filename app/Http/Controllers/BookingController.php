@@ -24,18 +24,21 @@ use App\Payment;
 use App\ModelVehicle;
 use File;
 use Response;
-// use PDF;
+use Illuminate\Support\Facades\Log;
+
 
 
 class BookingController extends Controller
 {
-    
+    /* Function to auth user 
+    */
     public function __construct()
     {
-        $this->middleware('auth'); //sapa nak excesss controlrer  kene login in dulu  kene letak dlm controller
+        $this->middleware('auth'); //sapa nak access controller  kene login in dulu  kene letak dlm controller
     }
 
-  
+    /* Function to search & display list of booking 
+    */
     public function index(Request $request)
     {
         if($request->has('search')){
@@ -73,7 +76,8 @@ class BookingController extends Controller
         return view('booking_index',compact('bookings'));
     }
 
-
+    /* Function to create interface booking; route to booking blade
+    */
     public function create()
     {
         $shipments = Shipment::where('date', '>', Carbon::today()->addDays(3)->format('Y-m-d'))
@@ -103,8 +107,9 @@ class BookingController extends Controller
         return view('booking_form_create', compact('shipments','packages','insurances','locations','customers','model_vehicles'));
     }
 
-
-     public function store(Request $request)
+    /* Function to store booking data in database 
+    */    
+    public function store(Request $request)
     {
          $this->validate($request, [
             'cust_id'=>'nullable',
@@ -119,7 +124,6 @@ class BookingController extends Controller
             'vehicle_market_value' => 'nullable|exists:insurances,id',
             'total_price'=>'required',
             'model_id'=>'nullable',
-            // 'make'=>'nullable',
             'model'=>'nullable',
             'year'=>'nullable',
             'body_type'=>'nullable',
@@ -134,7 +138,6 @@ class BookingController extends Controller
             'notes'=>'nullable',
             'personal_effect'=>'nullable',
         ]);
-
 
         if($request->cust_id == ""){
 
@@ -170,7 +173,7 @@ class BookingController extends Controller
         }
         
 
-        $booking = new Booking;
+            $booking = new Booking;
 
             $booking->customer_id = $customer->id;
             $booking->package_id = $request['shipment_trip'];
@@ -203,33 +206,29 @@ class BookingController extends Controller
             $booking->booking_status = "PENDING";
             $booking->user_id = $request['keyin'];
         
-        $booking->save();
+            $booking->save();
 
-        $vehicle = new Vehicle;
+            $vehicle = new Vehicle;
 
-        if($request->model_id > 0){
+            if($request->model_id > 0){
 
-            $vehicle->model_id = $request['model_id'];
+                $vehicle->model_id = $request['model_id'];
 
-        }else{
+            }else{
 
-            $model_vehicles = new ModelVehicle;
+                $model_vehicles = new ModelVehicle;
 
-            list($make, $model) = explode(' ',$request['model'],2);
+                list($make, $model) = explode(' ',$request['model'],2);
 
-            $model_vehicles->make = strtoupper($make);
-            $model_vehicles->model = strtoupper($model);
-            $model_vehicles->year = strtoupper($request['year']);
-            $model_vehicles->category = strtoupper($request['body_type']);
-            $model_vehicles->save();
+                $model_vehicles->make = strtoupper($make);
+                $model_vehicles->model = strtoupper($model);
+                $model_vehicles->year = strtoupper($request['year']);
+                $model_vehicles->category = strtoupper($request['body_type']);
+                $model_vehicles->save();
 
-            $vehicle->model_id = $model_vehicles->id;
+                $vehicle->model_id = $model_vehicles->id;
 
-        }
-
-            // $vehicle->model = strtoupper($request['model']);
-            // $vehicle->year = $request['year'];
-            // $vehicle->type = $request['body_type'];
+            }
 
             $vehicle->customer_id = $customer->id;
             $vehicle->booking_id = $booking->id;
@@ -270,10 +269,9 @@ class BookingController extends Controller
                 $vehicle->file_loan= "";
             }
 
-        $vehicle->save();
+            $vehicle->save();
 
-            /* Function notification count booking */
-            // $sendNotify = Booking::first();
+            // Function notification count booking 
             $user = User::all();
             $sendNotify = Booking::select('name','booking_no','booking_date','bookings.created_at','bookings.id')
                         ->join('customers', 'customers.id','=','bookings.customer_id')
@@ -282,30 +280,46 @@ class BookingController extends Controller
 
             Notification::send($user, new BooksNotification($sendNotify));
         
+            // Function when user click button save at booking blade (will skip this part if user click onbutton payment)
             if ($request->has('save')) {
-                   
-                // get function create payment bill from payment controller
-                $paymentController = (new PaymentController)->createPaymentBill($request, $customer);
                
-                //remove html header from function createPaymentBill
-                $parsed_url = parse_url($paymentController);
-                $query_string = isset($parsed_url['path']) ? $parsed_url['path'] : '';
-                parse_str($query_string, $query_params);
-                $bill_code = isset($query_params['bill_code']) ? $query_params['bill_code'] : null;
+                // Make a request to the PaymentController and get the response
+                $response = (new PaymentController)->createPaymentBill($request, $customer);
 
-                //save payment link in booking table
-                // $booking->payment_link = $bill_code;
-                // $booking->save();
+                if ($response->isRedirect()) {
+                    $headers = $response->headers;
+
+                    // Check if the Location header exists
+                    if ($headers->has('Location')) {
+                        $url = $headers->get('Location');
+
+                        // Extract the bill code from the URL
+                        if (preg_match('~/([^/]+)$~', $url, $billCodeMatches)) {
+                            $billCode = $billCodeMatches[1];
+                            // echo "Bill Code: $billCode";
+
+                            //save payment link in booking table
+                            $booking->payment_link = $billCode;
+                            $booking->save();
+
+                            return redirect()->route('booking.index');
             
-                return redirect()->route('booking.index');
-                // dd($bill_code);
+                        } else {
+                            echo "Bill code not found in the URL.";
+                        }
+                    } else {
+                        echo "Location header not found in the response.";
+                    }
+                } else {
+                    echo "No HTTP redirection found in the response.";
+                }
             }
 
         return redirect()->route('payment.create-payment',$customer);
-
     }
 
-   //function edit booking
+    /* Function to edit interface booking blade
+    */  
     public function edit(Booking $booking)
     {
         $shpId = Booking::select('shipment_id')
@@ -322,26 +336,27 @@ class BookingController extends Controller
                                 ->where('port_to', $getPort->port_to)
                                 ->get();
 
+        $vehicles = Vehicle::select('model_id')
+                            ->where('booking_id', $booking->id)
+                            ->first();
+
+        $model_vehicles = ModelVehicle::all()
+                            ->where('id',$vehicles->model_id)
+                            ->first();
+
         // $packages = Package::select('car_category')
         //                     ->groupBy('car_category')
         //                     ->get();
 
         // $locations = Location::where('status', 1)->get();
 
-        $vehicles = Vehicle::select('model_id')
-                            ->where('booking_id', $booking->id)
-                            ->first();
-
         // $insurances = Insurance::all();
-        $model_vehicles = ModelVehicle::all()
-                            ->where('id',$vehicles->model_id)
-                            ->first();
                                 
-
         return view('booking_form', compact('booking','shipments','vehicles','model_vehicles'));
     }
 
-    
+    /* Function to store edited data booking in database
+    */  
     public function update(Request $request, Booking $booking)
     {
         $this->validate($request, [
@@ -389,6 +404,8 @@ class BookingController extends Controller
         
     }
 
+    /* Function to delete data booking in database
+    */  
     public function destroy(Request $request, Booking $booking)
         {
             $booking->booking_status = $request['booking_status'];
@@ -404,7 +421,8 @@ class BookingController extends Controller
              return redirect()->route('booking.index');
         }
 
-    /*show view quotation*/    
+    /* Function to show view quotation booking report interface
+    */    
     public function show($id)
         {
             $booking = Booking::findOrFail($id);
@@ -420,6 +438,8 @@ class BookingController extends Controller
             // dd($model_vehicle);
         }
 
+        /* Function to show view invoice booking report interface
+         */
         public function showInvoice($id)
         {
             $booking = Booking::findOrFail($id);
@@ -431,6 +451,8 @@ class BookingController extends Controller
             
         }
 
+        /* Function to show view receipt booking booking report interface
+         */
         public function showReceipt($id)
         {
             $booking = Booking::findOrFail($id);
@@ -442,6 +464,8 @@ class BookingController extends Controller
             
         }
 
+        /* Function to show view confirmation booking report interface
+         */
         public function showConfirm($id)
         {
             $booking = Booking::findOrFail($id);
@@ -458,7 +482,9 @@ class BookingController extends Controller
             
         }
 
-    public function linkFileID($booking)
+        /* Function to link file ic customer
+        */        
+        public function linkFileID($booking)
         {
             $getFileID = Booking::select('customer_id')
                         ->where('id', $booking)
@@ -482,7 +508,9 @@ class BookingController extends Controller
     
         }    
 
-     public function linkFileGrant($booking)
+        /* Function to link file grant vehicle docs
+        */        
+        public function linkFileGrant($booking)
         {
             $getFileGrant = Vehicle::select('file_geran')
                         ->where('booking_id', $booking)
@@ -500,6 +528,8 @@ class BookingController extends Controller
             return $response;
         }
 
+        /* Function to link file loan letter vehicle docs
+        */ 
         public function linkFileLoan($booking)
         {
             $getFileLoan = Vehicle::select('file_loan')
@@ -536,111 +566,122 @@ class BookingController extends Controller
         //     return $logoCop;
         // }
         
-        
+        /* Function to create PDF quotation booking report 
+        */ 
         public function quotePDF($booking) 
         {
-                $data = Booking::where('id', $booking)->first();
-                $vehicle = Vehicle::select('model_id')->where('booking_id',$data->id)->first();
-                $model_vehicle = ModelVehicle::where('id', $vehicle->model_id)->first();
+            $data = Booking::where('id', $booking)->first();
+            $vehicle = Vehicle::select('model_id')->where('booking_id',$data->id)->first();
+            $model_vehicle = ModelVehicle::where('id', $vehicle->model_id)->first();
 
-                $path_logo = base_path('public/icon/logo.jpg');
-                $type = pathinfo($path_logo, PATHINFO_EXTENSION);
-                $file = file_get_contents($path_logo);
-                $logo ='data:image/'.$type.';base64,'.base64_encode($file);
+            $path_logo = base_path('public/icon/logo.jpg');
+            $type = pathinfo($path_logo, PATHINFO_EXTENSION);
+            $file = file_get_contents($path_logo);
+            $logo ='data:image/'.$type.';base64,'.base64_encode($file);
 
-                $path_cop = base_path('public/icon/cop-ventura.png');
-                $type = pathinfo($path_cop, PATHINFO_EXTENSION);
-                $file = file_get_contents($path_cop);
-                $cop ='data:image/'.$type.';base64,'.base64_encode($file);
+            $path_cop = base_path('public/icon/cop-ventura.png');
+            $type = pathinfo($path_cop, PATHINFO_EXTENSION);
+            $file = file_get_contents($path_cop);
+            $cop ='data:image/'.$type.';base64,'.base64_encode($file);
 
-                // list($logo,$cop) = explode(' ',$this->logoCop($logoCop),2);
+            // list($logo,$cop) = explode(' ',$this->logoCop($logoCop),2);
 
-                $pdf = PDF::loadView('pdf/booking_quoteView_export', compact('data','model_vehicle', 'logo','cop' ))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
-                $pdf->render();
+            $pdf = PDF::loadView('pdf/booking_quoteView_export', compact('data','model_vehicle', 'logo','cop' ))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
+            $pdf->render();
 
-                return $pdf->stream('Book No. '.$data->booking_no.' ('.$data->customer()->name.').pdf');
-                // dd($model_vehicle);
+            return $pdf->stream('Book No. '.$data->booking_no.' ('.$data->customer()->name.').pdf');
+            // dd($model_vehicle);
 
         }
 
+        /* Function to create PDF invoice booking report 
+        */ 
         public function invoicePDF($booking) 
         {
-                $data = Booking::where('id', $booking)->first();
-                $vehicle = Vehicle::select('model_id')->where('booking_id',$data->id)->first();
-                $model_vehicle = ModelVehicle::where('id', $vehicle->model_id)->first();
+            $data = Booking::where('id', $booking)->first();
+            $vehicle = Vehicle::select('model_id')->where('booking_id',$data->id)->first();
+            $model_vehicle = ModelVehicle::where('id', $vehicle->model_id)->first();
 
-                $path_logo = base_path('public/icon/logo.jpg');
-                $type = pathinfo($path_logo, PATHINFO_EXTENSION);
-                $file = file_get_contents($path_logo);
-                $logo ='data:image/'.$type.';base64,'.base64_encode($file);
+            $path_logo = base_path('public/icon/logo.jpg');
+            $type = pathinfo($path_logo, PATHINFO_EXTENSION);
+            $file = file_get_contents($path_logo);
+            $logo ='data:image/'.$type.';base64,'.base64_encode($file);
 
-                $path_cop = base_path('public/icon/cop-ventura.png');
-                $type = pathinfo($path_cop, PATHINFO_EXTENSION);
-                $file = file_get_contents($path_cop);
-                $cop ='data:image/'.$type.';base64,'.base64_encode($file);
+            $path_cop = base_path('public/icon/cop-ventura.png');
+            $type = pathinfo($path_cop, PATHINFO_EXTENSION);
+            $file = file_get_contents($path_cop);
+            $cop ='data:image/'.$type.';base64,'.base64_encode($file);
 
-                $pdf = PDF::loadView('pdf/booking_invoiceView_export', compact('data','model_vehicle', 'logo','cop' ))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
-                $pdf->render();
+            $pdf = PDF::loadView('pdf/booking_invoiceView_export', compact('data','model_vehicle', 'logo','cop' ))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
+            $pdf->render();
 
-                return $pdf->stream('Book No. '.$data->booking_no.' ('.$data->customer()->name.').pdf');
-                // dd($model_vehicle);
+            return $pdf->stream('Book No. '.$data->booking_no.' ('.$data->customer()->name.').pdf');
+            // dd($model_vehicle);
 
         }
 
+        /* Function to create PDF receipt booking report 
+        */ 
         public function receiptPDF($booking) 
         {
-                $data = Booking::where('id', $booking)->first();
-                $vehicle = Vehicle::select('model_id')->where('booking_id',$data->id)->first();
-                $model_vehicle = ModelVehicle::where('id', $vehicle->model_id)->first();
+            $data = Booking::where('id', $booking)->first();
+            $vehicle = Vehicle::select('model_id')->where('booking_id',$data->id)->first();
+            $model_vehicle = ModelVehicle::where('id', $vehicle->model_id)->first();
 
-                $path_logo = base_path('public/icon/logo.jpg');
-                $type = pathinfo($path_logo, PATHINFO_EXTENSION);
-                $file = file_get_contents($path_logo);
-                $logo ='data:image/'.$type.';base64,'.base64_encode($file);
+            $path_logo = base_path('public/icon/logo.jpg');
+            $type = pathinfo($path_logo, PATHINFO_EXTENSION);
+            $file = file_get_contents($path_logo);
+            $logo ='data:image/'.$type.';base64,'.base64_encode($file);
 
-                $path_cop = base_path('public/icon/cop-ventura.png');
-                $type = pathinfo($path_cop, PATHINFO_EXTENSION);
-                $file = file_get_contents($path_cop);
-                $cop ='data:image/'.$type.';base64,'.base64_encode($file);
+            $path_cop = base_path('public/icon/cop-ventura.png');
+            $type = pathinfo($path_cop, PATHINFO_EXTENSION);
+            $file = file_get_contents($path_cop);
+            $cop ='data:image/'.$type.';base64,'.base64_encode($file);
 
-                $pdf = PDF::loadView('pdf/booking_receiptView_export', compact('data','model_vehicle', 'logo','cop' ))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
-                $pdf->render();
+            $pdf = PDF::loadView('pdf/booking_receiptView_export', compact('data','model_vehicle', 'logo','cop' ))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
+            $pdf->render();
 
-                return $pdf->stream('Book No. '.$data->booking_no.' ('.$data->customer()->name.').pdf');
-                // dd($model_vehicle);
+            return $pdf->stream('Book No. '.$data->booking_no.' ('.$data->customer()->name.').pdf');
+            // dd($model_vehicle);
 
         }
 
+        /* Function to create PDF confirmation booking report 
+        */ 
         public function confirmPDF($booking) 
         {
-                $data = Booking::where('id', $booking)->first();
-                $vehicle = Vehicle::select('model_id')->where('booking_id',$data->id)->first();
-                $model_vehicle = ModelVehicle::where('id', $vehicle->model_id)->first();
+            $data = Booking::where('id', $booking)->first();
+            $vehicle = Vehicle::select('model_id')->where('booking_id',$data->id)->first();
+            $model_vehicle = ModelVehicle::where('id', $vehicle->model_id)->first();
 
-                $path_logo = base_path('public/icon/logo.jpg');
-                $type = pathinfo($path_logo, PATHINFO_EXTENSION);
-                $file = file_get_contents($path_logo);
-                $logo ='data:image/'.$type.';base64,'.base64_encode($file);
+            $path_logo = base_path('public/icon/logo.jpg');
+            $type = pathinfo($path_logo, PATHINFO_EXTENSION);
+            $file = file_get_contents($path_logo);
+            $logo ='data:image/'.$type.';base64,'.base64_encode($file);
 
-                $path_cop = base_path('public/icon/cop-ventura.png');
-                $type = pathinfo($path_cop, PATHINFO_EXTENSION);
-                $file = file_get_contents($path_cop);
-                $cop ='data:image/'.$type.';base64,'.base64_encode($file);
+            $path_cop = base_path('public/icon/cop-ventura.png');
+            $type = pathinfo($path_cop, PATHINFO_EXTENSION);
+            $file = file_get_contents($path_cop);
+            $cop ='data:image/'.$type.';base64,'.base64_encode($file);
 
-                $pdf = PDF::loadView('pdf/booking_confirmView_export', compact('data','model_vehicle', 'logo','cop' ))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
-                $pdf->render();
+            $pdf = PDF::loadView('pdf/booking_confirmView_export', compact('data','model_vehicle', 'logo','cop' ))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
+            $pdf->render();
 
-                return $pdf->stream('Book No. '.$data->booking_no.' ('.$data->customer()->name.').pdf');
-                // dd($model_vehicle);
+            return $pdf->stream('Book No. '.$data->booking_no.' ('.$data->customer()->name.').pdf');
+            // dd($model_vehicle);
 
         }
 
+        /* Function to export list of booking in csv 
+        */ 
         public function export()
         {
             return Excel::download(new BookingExport, 'bookings.xlsx');
         }
 
-    // public function restore(Booking $booking)
+    
+        
+        // public function restore(Booking $booking)
     //     {
 
     //         // //dd($booking);

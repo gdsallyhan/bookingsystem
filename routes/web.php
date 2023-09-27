@@ -84,6 +84,9 @@ Route::group(['prefix'=> 'admin'], function(){
     
     /*route for function export to csv*/
     Route::get('/export-bookings', 'BookingController@export')->name('export.bookings');
+    Route::get('/export-payments', 'PaymentController@export')->name('export.payment');
+    Route::get('/export-customers', 'CustomerController@export')->name('export.customer');
+    Route::get('/export-vehicles', 'VehicleController@export')->name('export.vehicle');
 });
 
 /*route for JS Dynamic Dropdown (Booking) function in Controller*/

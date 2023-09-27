@@ -19,8 +19,7 @@ class CustomerController extends Controller
         $this->middleware('auth'); //sapa nak excesss controlrer  kene login in dulu  kene letak dlm controller
     }
         
-    /**
-     * Display a listing of the resource.
+    /* Display a listing of the resource.
      */
     public function index(Request $request)
     {
@@ -46,8 +45,7 @@ class CustomerController extends Controller
         return view('customer_index',compact('customers'));
     }
 
-    /**
-     * Show the form for creating a new resource.
+    /* Show the form for creating a new resource.
      */
     public function create()
     {
@@ -55,8 +53,7 @@ class CustomerController extends Controller
         return view('customer_form', compact('customer'));
     }
 
-    /**
-     * Store a newly created resource in storage.
+    /* Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
@@ -99,11 +96,7 @@ class CustomerController extends Controller
 
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+    /*
      */
     public function show(Customer $customer)
     {
@@ -119,8 +112,7 @@ class CustomerController extends Controller
         // return $path;
     }
 
-    /**
-     * Show the form for editing the specified resource.
+    /* Show the form for editing the specified resource.
      */
     public function edit(Customer $customer)
     {
@@ -128,8 +120,7 @@ class CustomerController extends Controller
         return view('customer_form', compact('customer'));
     }
 
-    /**
-     * Update the specified resource in storage.
+    /* Update the specified resource in storage.
      */
     public function update(Request $request, Customer $customer)
     {
@@ -167,11 +158,7 @@ class CustomerController extends Controller
         return redirect()->route('customer.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+    /* Remove the specified resource from storage.
      */
     public function destroy(Customer $customer)
     {
