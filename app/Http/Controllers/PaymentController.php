@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PaymentExport;
 use App\Customer;
 use App\Booking;
@@ -207,10 +208,19 @@ class PaymentController extends Controller
         return view('payment_index',compact('payments'));
     }
 
-    /* Function to display receipt after payment success
+    /* Function to export list of payment in csv 
+        */ 
+        public function export()
+        {
+            return Excel::download(new PaymentExport, 'payments.xlsx');
+        }
+
+    /* Function to display receipt after payment success or not
      */
-    public function show(Payment $payment)
+    public function show($pay_id)
     {
+        $payment = Payment::where('booking_id',$pay_id)->first();
+        // dd($payment);
         return view('payment_view', compact('payment'));
     }
    
