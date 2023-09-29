@@ -24,7 +24,7 @@ use App\Payment;
 use App\ModelVehicle;
 use File;
 use Response;
-use Illuminate\Support\Facades\Log;
+// use Illuminate\Support\Facades\Log;
 
 
 

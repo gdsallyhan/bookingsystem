@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use App\Booking;
 use App\ModelVehicle;
 use App\Vehicle;
@@ -20,11 +21,12 @@ class PaymentExport implements FromCollection, WithHeadings
         $booking = Booking::select(
             'bookings.created_at',
             'bookings.booking_no',
-            'customers.name as customer name',
+            'customers.name as customer_name',
             'customers.phone',
             'bookings.booking_date',
             'bookings.booking_status',
-            'payments.amount',
+            DB::raw('FORMAT(payments.amount, 0) as amount'),
+            'payments.mode',
             'payments.status',
             'payments.ref',
             'payments.payment_date',
@@ -34,7 +36,6 @@ class PaymentExport implements FromCollection, WithHeadings
             ->join('customers', 'customers.id', '=', 'bookings.customer_id')
             ->join('payments', 'payments.booking_id', '=', 'bookings.id')
             ->whereNull('bookings.deleted_at')
-            ->where('bookings.deleted_at')
             ->get()->toArray();
 
         return collect($booking);
@@ -51,6 +52,7 @@ class PaymentExport implements FromCollection, WithHeadings
             'Booking Date',
             'Booking Status',
             'Amount',
+            'Mode',
             'Code Status',
             'Reference',
             'Payment Date',

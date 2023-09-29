@@ -35,7 +35,6 @@ class BookingExport implements FromCollection, WithHeadings
             ->join('shipments', 'shipments.id', '=', 'bookings.shipment_id')
             ->join('locations', 'locations.id', '=', 'bookings.id')
             ->whereNull('bookings.deleted_at')
-            ->where('bookings.deleted_at')
             ->get()->toArray();
 
         $loc_pick = Booking::select('locations.name as collection')

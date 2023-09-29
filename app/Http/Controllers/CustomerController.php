@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CustomerExport;
 use App\Customer;
 use File;
 use Response;
@@ -165,4 +167,11 @@ class CustomerController extends Controller
         $customer->delete();
         return redirect()->route('customer.index');
     }
+
+    /* Function to export list of customer in csv 
+        */ 
+        public function export()
+        {
+            return Excel::download(new CustomerExport, 'customers.xlsx');
+        }
 }
