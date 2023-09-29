@@ -573,6 +573,7 @@ class ComposerStaticInit1bcd6f554f9fe54dd59d416defd9a2c7
         'App\\Customer' => __DIR__ . '/../..' . '/app/Customer.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Exports\\BookingExport' => __DIR__ . '/../..' . '/app/Exports/BookingExport.php',
+        'App\\Exports\\CustomerExport' => __DIR__ . '/../..' . '/app/Exports/CustomerExport.php',
         'App\\Exports\\PaymentExport' => __DIR__ . '/../..' . '/app/Exports/PaymentExport.php',
         'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
         'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ForgotPasswordController.php',

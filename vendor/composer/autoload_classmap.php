@@ -11,6 +11,7 @@ return array(
     'App\\Customer' => $baseDir . '/app/Customer.php',
     'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
     'App\\Exports\\BookingExport' => $baseDir . '/app/Exports/BookingExport.php',
+    'App\\Exports\\CustomerExport' => $baseDir . '/app/Exports/CustomerExport.php',
     'App\\Exports\\PaymentExport' => $baseDir . '/app/Exports/PaymentExport.php',
     'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => $baseDir . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
     'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => $baseDir . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
