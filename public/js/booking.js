@@ -160,19 +160,15 @@ $(document).ready(function() {
                 var str_pickup = "<option value = '' disabled selected> PLEASE SELECT </option>";
                 var str_delivery = "<option value = '' disabled selected> PLEASE SELECT </option>";
 
-
-
                     for(p=0; p<p_loc.pickup.length; p++){
 
                        str_pickup = str_pickup +"<option value= '"+ p_loc.pickup[p].pickup_id + "'>" + p_loc.pickup[p].pickup +"  (" + p_loc.pickup[p].pickup_state +") - RM" + p_loc.pickup[p].pickup_price +"</option>"
                         
                         pickup_price = p_loc.pickup[p].pickup_price;
-                       
                     }
 
                      $("#pickup-dropdown").append(str_pickup);
                      
-                        
 
                     for(d=0; d<p_loc.delivery.length; d++){
 
@@ -183,11 +179,13 @@ $(document).ready(function() {
 
                     $("#delivery-dropdown").append(str_delivery);
                     
-             }})
+                }
+
+             });
 
         });
 
-        });
+    });
             
 // });
 

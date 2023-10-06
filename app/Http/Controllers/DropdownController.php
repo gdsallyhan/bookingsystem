@@ -247,33 +247,4 @@ class DropdownController extends Controller
         
     }
 
-    // public function fetchTrips($tId)
-    // {
-    //     $pack_car = $tId;
-
-    //     $trips = Package::select('id','trip_from','trip_to','price')
-    //                                 ->where('car_category', $pack_car)
-    //                                 ->get();
-
-    //     //return $trips;
-
-    //     $trip_array = array();
-    //     $trip_ship_array = array();
-
-    //     for($i = 0; $i < count($trips); $i++){
-
-    //            $trip_ship_array['trip_id'] = $trips[$i]->id;
-    //            $trip_ship_array['trip_from'] = $trips[$i]->trip_from;
-    //            $trip_ship_array['trip_to'] = $trips[$i]->trip_to;
-    //            $trip_ship_array['price'] = $trips[$i]->price;
-              
-    //     //compile loop array as object 1 (which pickup_array)
-    //     array_push($trip_array, $trip_ship_array);
-
-    //     }
-
-
-    //    return $trip_array;
-        
-    // }
 }
