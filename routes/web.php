@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookingController;
 use App\Notifications\BooksNotification;
+// use App\Http\Controllers\QrCodeController;
 // use App\Exports\BookingExport;
 use Carbon\Carbon;
 use App\User;
@@ -99,6 +100,7 @@ Route::get('/admin/booking/insurancePrice/{id}', 'DropdownController@insurancePr
 Route::get('/admin/booking/fetch_cust/{id}', 'DropdownController@fetchCust');
 Route::get('/admin/booking/fetch_model/{id}', 'DropdownController@fetchModel');
 
+/* Generate Qr Code
 
 
 

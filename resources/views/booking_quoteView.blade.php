@@ -262,7 +262,9 @@
                 <div align="right" style="width:90%">
                         <b>Untuk Cetak Klik Sini --><b> &nbsp; <a href="{{route('booking.quotePDF', $booking->id)}}" onclick="window.open(this.href, '_blank', 'left=20,top=20,width=800,height=500,toolbar=1,resizable=0'); return false;"  >
                             <img src="{{ asset('/icon/printer.gif')}}" alt="Cetak" height="50" width="50"/></a>
-                    </div>
+                </div>
+
+                <!-- <div>  <a href="https://dev.toyyibpay.com/{{ $booking->payment_link }}" target="_blank">https://dev.toyyibpay.com/{{ $booking->payment_link }} </a></div> -->
                 </td>
             </tr>
         </table>

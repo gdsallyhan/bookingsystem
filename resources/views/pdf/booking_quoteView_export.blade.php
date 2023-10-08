@@ -215,15 +215,24 @@
 </div>
 
 <div>
-        <table style=" width: 70%;">
+        <table style="">
             <tr>
-                <td colspan="3" style="background-color: rgb(68, 177, 235);">
+                <td colspan="3" style="background-color: rgb(68, 177, 235); width: 50%;">
                     <div style="padding: 10px;"><strong>
                         <p style="color: white; font-weight: bold;">NOTE:</p>
                         <p style="color: white;">1. The above ocean freight charges.</p>
-                        <p style="color: white;">2. The above rates include BL Fee, EDI Fee, DO Fees for both Ports,
-                        <br>&nbsp;&nbsp;&nbsp; Customs Clearance at both Ports, VTC Handling Charges for both <br>&nbsp;&nbsp;&nbsp; Ports, and Low Sulphur Surcharge.</p>
+                        <p style="color: white;">2. The above rates include BL Fee, EDI Fee, DO Fees for both 
+                        <br>&nbsp;&nbsp;&nbsp;&nbsp;Ports, Customs Clearance at both Ports, VTC Handling Charges for &nbsp;&nbsp;&nbsp;&nbsp;both  Ports, and Low Sulphur Surcharge.</p>
+                        
                         </strong>
+                    </div>
+                </td>
+                <td colspan="2" style="background-color: white; width: 30%;">
+                    <div style="padding-left: 20px;"><strong>
+                        <br>  
+                            {!! DNS2D::getBarcodeHTML('https://dev.toyyibpay.com/'. $data->payment_link,'QRCODE',4,4) !!}
+                            <br>
+                        <a href="https://dev.toyyibpay.com/{{ $data->payment_link }}" target="_blank" style="">https://dev.toyyibpay.com/{{ $data->payment_link }} </a>
                     </div>
                 </td>
             </tr>

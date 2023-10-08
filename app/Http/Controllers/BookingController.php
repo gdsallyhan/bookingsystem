@@ -6,6 +6,7 @@ use App\Http\Controllers\PaymentController;
 use App\Notifications\BooksNotification;
 use App\Exports\BookingExport;
 use Maatwebsite\Excel\Facades\Excel;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\View;
@@ -586,7 +587,7 @@ class BookingController extends Controller
 
             // list($logo,$cop) = explode(' ',$this->logoCop($logoCop),2);
 
-            $pdf = PDF::loadView('pdf/booking_quoteView_export', compact('data','model_vehicle', 'logo','cop' ))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
+            $pdf = PDF::loadView('pdf/booking_quoteView_export', compact('data','model_vehicle', 'logo','cop'))->setOptions(['isHtml5Parser' =>true, 'isRemoteEnabled' => true]);
             $pdf->render();
 
             return $pdf->stream('Book No. '.$data->booking_no.' ('.$data->customer()->name.').pdf');
